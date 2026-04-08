@@ -1,3 +1,5 @@
+English | [繁體中文](README_zh.md)
+
 # TWSE Stocks
 
 Taiwan stock market individual stock lookup with real-time data from Taiwan Stock Exchange (TWSE).
