@@ -325,7 +325,7 @@
       async function initialize() {
         console.log("[Stock] Initializing...");
 
-        const savedLang = localStorage.getItem("ubike-lang");
+        const savedLang = localStorage.getItem("stock-lang");
         if (savedLang) isZh = savedLang === "zh";
 
         // Bind search
@@ -630,7 +630,7 @@
       // ============================================================
       function toggleLang() {
         isZh = !isZh;
-        localStorage.setItem("ubike-lang", isZh ? "zh" : "en");
+        localStorage.setItem("stock-lang", isZh ? "zh" : "en");
         updateUI();
         renderList();
       }
