@@ -35,7 +35,6 @@ The app fetches live data from TWSE's OpenAPI via a Cloudflare Worker proxy, sup
 
 ### Navigation Header
 - Language toggle button (EN/中文)
-- Links to other apps (YouBike, Weather, ETF)
 - Active state highlighting
 
 ### Search Bar
