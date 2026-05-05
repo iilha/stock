@@ -1,0 +1,9 @@
+{
+  "appId": "stock",
+  "appName": "ustock  Monitor",
+  "apiBase": "https://api.transport-pwa.com/stock",
+  "siteBase": "https://stock.transport-pwa.com/",
+  "supportEmail": "transport-pwa@googlegroups.com",
+  "playStoreUrl": "https://play.google.com/store/apps/details?id=tw.pwa.stock",
+  "storagePrefix": "stock_"
+}
