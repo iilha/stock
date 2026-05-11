@@ -1058,6 +1058,15 @@ async function sendFeedbackEmail() {
     }
   });
 });
+
+// Explicit global assignment for onclick handlers
+window.openHelpModal = openHelpModal;
+window.closeHelpModal = closeHelpModal;
+window.openAboutModal = openAboutModal;
+window.closeAboutModal = closeAboutModal;
+window.openFeedbackModal = openFeedbackModal;
+window.closeFeedbackModal = closeFeedbackModal;
+window.sendFeedbackEmail = sendFeedbackEmail;
   </script>
 
   <!-- Initialize UUID, Health, OTA -->
