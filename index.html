@@ -938,7 +938,7 @@ let translations = {};
 
 async function loadTranslations(lang) {
   try {
-    const resp = await fetch(\`./i18n/${lang}.json\`);
+    const resp = await fetch(`./i18n/${lang}.json`);
     if (!resp.ok) throw new Error('i18n fetch failed');
     translations = await resp.json();
   } catch (err) {
@@ -1022,26 +1022,26 @@ async function sendFeedbackEmail() {
         } else {
           trackAppOpen(); // DOM already ready, execute immediately
         }
-    const subject = encodeURIComponent(\`Feedback: ${config.appName}\`);
+    const subject = encodeURIComponent(`Feedback: ${config.appName}`);
     const nativeVersion = window.__APP_ENV__?.nativeVersionName || '1.0.0';
     const platform = window.__APP_ENV__?.platform || 'web';
     const body = encodeURIComponent(
-      \`Hi,
+      `Hi,
 
-\` +
-      \`I have feedback about ${config.appName}:
+` +
+      `I have feedback about ${config.appName}:
 
-\` +
-      \`[Please describe your feedback here]
+` +
+      `[Please describe your feedback here]
 
-\` +
-      \`---
-\` +
-      \`App Version: ${nativeVersion}
-\` +
-      \`Platform: ${platform}\`
+` +
+      `---
+` +
+      `App Version: ${nativeVersion}
+` +
+      `Platform: ${platform}`
     );
-    window.location.href = \`mailto:${config.supportEmail}?subject=${subject}&body=${body}\`;
+    window.location.href = `mailto:${config.supportEmail}?subject=${subject}&body=${body}`;
     setTimeout(() => { closeFeedbackModal(); }, 500);
   } catch (err) {
     console.error('Failed to open email:', err);
@@ -1112,7 +1112,7 @@ window.sendFeedbackEmail = sendFeedbackEmail;
 
         const nativeVersion = window.__APP_ENV__?.nativeVersionName || '1.0.0';
         const webVersion = localStorage.getItem(config.storagePrefix + 'ota_version') || '';
-        const versionText = webVersion ? \`v${nativeVersion} (web ${webVersion})\` : \`v${nativeVersion}\`;
+        const versionText = webVersion ? `v${nativeVersion} (web ${webVersion})` : `v${nativeVersion}`;
         const appVersionEl = document.getElementById('app-version');
         if (appVersionEl) appVersionEl.textContent = versionText;
 
