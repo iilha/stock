@@ -993,6 +993,35 @@ async function sendFeedbackEmail() {
   try {
     const configResp = await fetch('./app-config.json');
     const config = await configResp.json();
+
+        // Initialize analytics
+        initAnalytics(config);
+
+        // Track app_open event with session guard
+        const trackAppOpen = () => {
+          const sessionKey = config.storagePrefix + 'session_tracked';
+
+          if (sessionStorage.getItem(sessionKey)) {
+            console.debug('[Analytics] app_open already tracked this session');
+            return;
+          }
+
+          sessionStorage.setItem(sessionKey, '1');
+
+          trackEvent('app_open', {
+            viewport_width: window.innerWidth,
+            viewport_height: window.innerHeight,
+            lang: localStorage.getItem(config.storagePrefix + 'lang') || 'en',
+            ota_version: parseInt(localStorage.getItem(config.storagePrefix + 'ota_version')) || 0
+          });
+        };
+
+        // Fix #7: DOMContentLoaded race - check if DOM already ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', trackAppOpen, { once: true });
+        } else {
+          trackAppOpen(); // DOM already ready, execute immediately
+        }
     const subject = encodeURIComponent(\`Feedback: \${config.appName}\`);
     const nativeVersion = window.__APP_ENV__?.nativeVersionName || '1.0.0';
     const platform = window.__APP_ENV__?.platform || 'web';
@@ -1036,11 +1065,41 @@ async function sendFeedbackEmail() {
     import { getBrowserUUID } from './js/uuid.js';
     import { refreshBackendStatus, startHealthPoll } from './js/health.js';
     import { initOta, checkForUpdate } from './js/ota.js';
+    import { initAnalytics, trackEvent } from './js/analytics.js';
 
     async function initializeInfrastructure() {
       try {
         const configResp = await fetch('./app-config.json');
         const config = await configResp.json();
+
+        // Initialize analytics
+        initAnalytics(config);
+
+        // Track app_open event with session guard
+        const trackAppOpen = () => {
+          const sessionKey = config.storagePrefix + 'session_tracked';
+
+          if (sessionStorage.getItem(sessionKey)) {
+            console.debug('[Analytics] app_open already tracked this session');
+            return;
+          }
+
+          sessionStorage.setItem(sessionKey, '1');
+
+          trackEvent('app_open', {
+            viewport_width: window.innerWidth,
+            viewport_height: window.innerHeight,
+            lang: localStorage.getItem(config.storagePrefix + 'lang') || 'en',
+            ota_version: parseInt(localStorage.getItem(config.storagePrefix + 'ota_version')) || 0
+          });
+        };
+
+        // Fix #7: DOMContentLoaded race - check if DOM already ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', trackAppOpen, { once: true });
+        } else {
+          trackAppOpen(); // DOM already ready, execute immediately
+        }
 
         const nativeVersion = window.__APP_ENV__?.nativeVersionName || '1.0.0';
         const webVersion = localStorage.getItem(config.storagePrefix + 'ota_version') || '';
