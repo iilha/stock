@@ -833,9 +833,10 @@
       // ============================================================
       // LANGUAGE
       // ============================================================
-      function toggleLang() {
+      async function toggleLang() {
         isZh = !isZh;
         localStorage.setItem("stock-lang", isZh ? "zh" : "en");
+  await applyLanguage(isZh ? 'zh' : 'en');
         updateUI();
         renderList();
       }
