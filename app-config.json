@@ -2,7 +2,7 @@
   "appId": "stock",
   "appName": "ustock  Monitor",
   "apiBase": "https://api.octile.eu.cc",
-  "siteBase": "https://stock.transport-pwa.com/",
+  "siteBase": "https://iilha.github.io/stock/",
   "features": {
     "events": true
   },
