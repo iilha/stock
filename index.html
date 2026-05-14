@@ -448,6 +448,43 @@
       margin-top: 10px;
       text-align: center;
     }
+    /* Toast System (Octile Universe - Calm Design) */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #1e1e24;
+      color: #f5f5f7;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .toast-success {
+      border-left: 4px solid #4caf50;
+    }
+    .toast-error {
+      border-left: 4px solid #f44336;
+    }
+    .toast-info {
+      border-left: 4px solid #2196f3;
+    }
+    .calm-fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .calm-fade-out {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
 
     </style>
     <!-- Cloudflare Turnstile -->
@@ -1022,7 +1059,7 @@ async function sendFeedback() {
     const lang = localStorage.getItem('lang') || 'en';
 
     if (!feedbackText) {
-      alert(lang === 'zh' ? '請輸入您的意見回饋' : 'Please enter your feedback');
+      showToast(lang === 'zh' ? '請輸入您的意見回饋' : 'Please enter your feedback', 'info');
       return;
     }
 
@@ -1085,12 +1122,12 @@ async function sendFeedback() {
     // Success
     document.getElementById('feedback-text').value = '';
     document.getElementById('feedback-email').value = '';
-    alert(lang === 'zh' ? '感謝您的回饋！' : 'Thanks for your feedback!');
+    showToast(lang === 'zh' ? '感謝您的回饋！' : 'Thanks for your feedback!', 'success');
     closeFeedbackModal();
   } catch (error) {
     console.error('Feedback error:', error);
     const lang = localStorage.getItem('lang') || 'en';
-    alert(lang === 'zh' ? '發送失敗，請稍後再試' : 'Failed to send. Please try again later.');
+    showToast(lang === 'zh' ? '發送失敗，請稍後再試' : 'Failed to send. Please try again later.', 'error');
   } finally {
     window.__feedbackSubmitting = false;
     const sendBtn = document.querySelector('.feedback-submit');
@@ -1142,6 +1179,7 @@ window.sendFeedbackEmail = sendFeedbackEmail;
     import { initOta, checkForUpdate } from './js/ota.js';
     import { initAnalytics, trackEvent } from './js/analytics.js';
     import { initSession } from './js/session.js';
+    import { showToast } from './js/toast.js';
 
     async function initializeInfrastructure() {
       try {
@@ -1219,6 +1257,9 @@ window.sendFeedbackEmail = sendFeedbackEmail;
     }
 
     initializeInfrastructure();
+
+    // Make showToast available globally for non-module scripts
+    window.showToast = showToast;
   </script>
 
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}</script>
