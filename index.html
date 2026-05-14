@@ -879,7 +879,7 @@
         </p>
         <p class="about-byline" data-i18n="about.byline">A Taiwan Transport PWA</p>
         <div class="about-links">
-          <a href="mailto:transport-pwa@googlegroups.com" class="about-link">
+          <a id="about-contact-email" href="mailto:octile-pwa+stock@googlegroups.com" class="about-link">
             <span data-i18n="about.contact">Contact</span>
           </a>
           <a href="privacy.html" target="_blank" class="about-link">
@@ -907,7 +907,7 @@
       </div>
       <p class="help-contact">
         <span data-i18n="help.contact">Contact: </span>
-        <a href="mailto:transport-pwa@googlegroups.com">transport-pwa@googlegroups.com</a>
+        <a id="help-contact-email" href="mailto:octile-pwa+stock@googlegroups.com">octile-pwa+stock@googlegroups.com</a>
       </p>
       <button class="modal-done" onclick="closeHelpModal()" data-i18n="help.done">Got it</button>
     </div>
@@ -918,20 +918,14 @@
     <div class="modal-content">
       <h2 data-i18n="feedback.title">Feedback</h2>
       <p class="feedback-intro" data-i18n="feedback.intro">Help us improve this app</p>
-      <div class="feedback-warning" data-i18n="feedback.warning">
-        ⚠️ Please don't include personal information (name, email, phone).
-      </div>
+      <textarea id="feedback-text" class="feedback-textarea" rows="6"
+        data-i18n-placeholder="feedback.placeholder"></textarea>
+      <input type="email" id="feedback-email" class="feedback-email-input"
+        data-i18n-placeholder="feedback.emailPlaceholder">
       <div class="feedback-actions">
-        <button class="modal-done" onclick="sendFeedbackEmail()" data-i18n="feedback.email">
-          Send via Email
-        </button>
-        <button class="modal-done" onclick="closeFeedbackModal()" data-i18n="feedback.cancel">
-          Cancel
-        </button>
+        <button class="feedback-submit" onclick="sendFeedbackEmail()" data-i18n="feedback.send">Send</button>
+        <button class="modal-cancel" onclick="closeFeedbackModal()" data-i18n="feedback.cancel">Cancel</button>
       </div>
-      <p class="feedback-note" data-i18n="feedback.note">
-        Opens your email app to send feedback to our team.
-      </p>
     </div>
   </div>
 
@@ -966,7 +960,19 @@ async function applyLanguage(lang) {
 
   <!-- Modal Controls -->
   <script>
-function openHelpModal() {
+async function openHelpModal() {
+  // Load support email from app-config.json
+  try {
+    const configResp = await fetch('./app-config.json');
+    const config = await configResp.json();
+    const emailLink = document.getElementById('help-contact-email');
+    if (emailLink && config.supportEmail) {
+      emailLink.href = `mailto:${config.supportEmail}`;
+      emailLink.textContent = config.supportEmail;
+    }
+  } catch (err) {
+    console.warn('Failed to load support email from config:', err);
+  }
   document.getElementById('help-modal').classList.add('open');
 }
 
@@ -974,9 +980,22 @@ function closeHelpModal() {
   document.getElementById('help-modal').classList.remove('open');
 }
 
-function openAboutModal() {
+async function openAboutModal() {
   const version = document.getElementById('app-version')?.textContent || '1.0.0';
   document.getElementById('app-version-display').textContent = version;
+
+  // Load support email from app-config.json
+  try {
+    const configResp = await fetch('./app-config.json');
+    const config = await configResp.json();
+    const emailLink = document.getElementById('about-contact-email');
+    if (emailLink && config.supportEmail) {
+      emailLink.href = `mailto:${config.supportEmail}`;
+    }
+  } catch (err) {
+    console.warn('Failed to load support email from config:', err);
+  }
+
   document.getElementById('about-modal').classList.add('open');
 }
 
@@ -992,74 +1011,110 @@ function closeFeedbackModal() {
   document.getElementById('feedback-modal').classList.remove('open');
 }
 
-async function sendFeedbackEmail() {
+async function sendFeedback() {
+  // Rate limit / double-click protection
+  if (window.__feedbackSubmitting) return;
+  window.__feedbackSubmitting = true;
+
   try {
-    const configResp = await fetch('./app-config.json');
-    const config = await configResp.json();
+    const feedbackText = document.getElementById('feedback-text')?.value.trim();
+    const feedbackEmail = document.getElementById('feedback-email')?.value.trim();
+    const lang = localStorage.getItem('lang') || 'en';
 
-        // Initialize analytics
-        // Initialize session manager (doesn't bootstrap yet, just sets config)
-        console.log('[Init] Initializing session manager...');
-        initSession(config);
-        console.log('[Init] Session manager initialized');
+    if (!feedbackText) {
+      alert(lang === 'zh' ? '請輸入您的意見回饋' : 'Please enter your feedback');
+      return;
+    }
 
-        // Initialize analytics
-        console.log('[Init] Initializing analytics...');
-        initAnalytics(config);
-        console.log('[Init] Analytics initialized');
+    // Disable button (with null check)
+    const sendBtn = document.querySelector('.feedback-submit');
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.textContent = lang === 'zh' ? '傳送中...' : 'Sending...';
+    }
 
-        // Track app_open event with session guard
-        const trackAppOpen = () => {
-          const sessionKey = config.storagePrefix + 'session_tracked';
+    // Use pre-loaded config (not fetch every time)
+    const config = window.__APP_CONFIG__;
+    if (!config) throw new Error('Config not loaded');
 
-          if (sessionStorage.getItem(sessionKey)) {
-            console.debug('[Analytics] app_open already tracked this session');
-            return;
-          }
-
-          sessionStorage.setItem(sessionKey, '1');
-
-          trackEvent('app_open', {
-            viewport_width: window.innerWidth,
-            viewport_height: window.innerHeight,
-            lang: localStorage.getItem(config.storagePrefix + 'lang') || 'en',
-            ota_version: parseInt(localStorage.getItem(config.storagePrefix + 'ota_version')) || 0
-          });
-        };
-
-        // Fix #7: DOMContentLoaded race - check if DOM already ready
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', trackAppOpen, { once: true });
-        } else {
-          trackAppOpen(); // DOM already ready, execute immediately
-        }
-    const subject = encodeURIComponent(`Feedback: ${config.appName}`);
     const nativeVersion = window.__APP_ENV__?.nativeVersionName || '1.0.0';
     const platform = window.__APP_ENV__?.platform || 'web';
-    const body = encodeURIComponent(
-      `Hi,
 
-` +
-      `I have feedback about ${config.appName}:
+    // Generate UUID if not exists (not "unknown")
+    let uuid = localStorage.getItem(`${config.storagePrefix}browser_uuid`);
+    if (!uuid) {
+      uuid = crypto.randomUUID ? crypto.randomUUID() : generateUUID();
+      localStorage.setItem(`${config.storagePrefix}browser_uuid`, uuid);
+    }
 
-` +
-      `[Please describe your feedback here]
+    // Unified context schema (same for all apps)
+    const context = {
+      app: config.appId,
+      screen: {
+        w: window.innerWidth,
+        h: window.innerHeight,
+        dpr: window.devicePixelRatio || 1
+      },
+      locale: lang,
+      city: document.getElementById('city-select')?.value || null,
+      tab: document.querySelector('.tab-btn.active')?.dataset.tab || null,
+      view: null,
+      query: null
+    };
 
-` +
-      `---
-` +
-      `App Version: ${nativeVersion}
-` +
-      `Platform: ${platform}`
-    );
-    window.location.href = `mailto:${config.supportEmail}?subject=${subject}&body=${body}`;
-    setTimeout(() => { closeFeedbackModal(); }, 500);
-  } catch (err) {
-    console.error('Failed to open email:', err);
-    alert('Failed to open email client');
+    const response = await fetch(`${config.apiBase}/feedback`, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'general',
+        email: feedbackEmail || null,
+        message: feedbackText,
+        lang: lang,
+        version: nativeVersion,
+        platform: platform,
+        uuid: uuid,
+        context: context
+      })
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    // Success
+    document.getElementById('feedback-text').value = '';
+    document.getElementById('feedback-email').value = '';
+    alert(lang === 'zh' ? '感謝您的回饋！' : 'Thanks for your feedback!');
+    closeFeedbackModal();
+  } catch (error) {
+    console.error('Feedback error:', error);
+    const lang = localStorage.getItem('lang') || 'en';
+    alert(lang === 'zh' ? '發送失敗，請稍後再試' : 'Failed to send. Please try again later.');
+  } finally {
+    window.__feedbackSubmitting = false;
+    const sendBtn = document.querySelector('.feedback-submit');
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      const lang = localStorage.getItem('lang') || 'en';
+      sendBtn.textContent = lang === 'zh' ? '傳送' : 'Send';
+    }
   }
 }
 
+// Backward compatibility alias
+function sendFeedbackEmail() {
+  sendFeedback();
+}
+
+// Utility: Generate UUID (fallback for crypto.randomUUID)
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 ['help-modal', 'about-modal', 'feedback-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) {
@@ -1092,6 +1147,9 @@ window.sendFeedbackEmail = sendFeedbackEmail;
       try {
         const configResp = await fetch('./app-config.json');
         const config = await configResp.json();
+
+        // Store config globally for feedback + other features
+        window.__APP_CONFIG__ = config;
 
         // Initialize analytics
         // Initialize session manager (doesn't bootstrap yet, just sets config)
