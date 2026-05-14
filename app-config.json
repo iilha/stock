@@ -7,7 +7,7 @@
     "events": true
   },
   "debug": false,
-  "supportEmail": "octile-pwa@googlegroups.com",
+  "supportEmail": "octile-pwa+stock@googlegroups.com",
   "playStoreUrl": "https://play.google.com/store/apps/details?id=tw.pwa.stock",
   "storagePrefix": "stock_",
   "turnstileSiteKey": "0x4AAAAAACuir272GuoMUfnx"
